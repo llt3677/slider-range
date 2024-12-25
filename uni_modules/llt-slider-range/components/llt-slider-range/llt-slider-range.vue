@@ -214,12 +214,16 @@ export default {
     // 生成提示样式
     generateTipStyle(type) {
       const position = type === 'lowerBlock' ? this.leftHandlePosition : this.rightHandlePosition
-      const maxDistance = String(this.selectedRange[1]).length * 4
+      // 计算最大显示距离,根据右侧值的字符长度乘以8得到基准距离
+      const maxDistance = String(this.selectedRange[1]).length * 8
+      // 计算实际距离,用最大距离减去两个滑块之间的距离
       const distance = maxDistance - (this.rightHandlePosition - this.leftHandlePosition)
 
+      // 如果实际距离大于0,说明两个滑块太近,需要调整提示位置避免重叠
       if (distance > 0) {
+        // 根据滑块类型计算偏移量,左滑块向左偏移,右滑块向右偏移
         const diff = type === 'lowerBlock' ? -distance : distance
-        return `left: ${position + diff / 2}%`
+        return `left: calc(${position}% + ${diff}rpx)`
       }
 
       return position < 90
