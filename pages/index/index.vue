@@ -1,6 +1,8 @@
 <template>
   <view class="content">
-    {{ rangeValue }}
+    <view style="margin-bottom: 20rpx;">
+      {{ rangeValue }}
+    </view>
     <llt-slider-range v-model="rangeValue" />
   </view>
 </template>
@@ -17,7 +19,7 @@ export default {
 
 <style>
 	.content {
-		padding: 60rpx 16rpx;
+		padding: 60rpx;
 	}
 
 </style>

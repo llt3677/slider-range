@@ -19,6 +19,7 @@
         @touchstart="onTouchStart"
         @touchmove="onBlockTouchMove"
         @touchend="onBlockTouchEnd"
+        @mousedown="onMouseDown"
         :data-tag="block"
       />
 
@@ -324,6 +325,52 @@ export default {
     // 验证值是否有效
     isValidValues(values) {
       return Array.isArray(values) && values.length === 2;
+    },
+
+    // 添加鼠标按下事件处理
+    onMouseDown(event) {
+      if (this.disabled) return;
+      
+      const tag = event.target.dataset.tag;
+      this.currentBlock = tag;
+      this.startDragPos = event.pageX;
+      this.startVal = tag === 'lowerBlock' ? this.values[0] : this.values[1];
+      this.isDragging = true;
+
+      // 添加鼠标移动和抬起的事件监听
+      document.addEventListener('mousemove', this.onMouseMove);
+      document.addEventListener('mouseup', this.onMouseUp);
+    },
+
+    // 添加鼠标移动事件处理
+    onMouseMove(event) {
+      if (!this.isDragging || this.disabled) return;
+      event.preventDefault(); // 防止拖动时选中文本
+      throttle(this.handleMouseDrag(event), 500);
+    },
+
+    // 添加鼠标抬起事件处理
+    onMouseUp() {
+      this.isDragging = false;
+      // 移除事件监听
+      document.removeEventListener('mousemove', this.onMouseMove);
+      document.removeEventListener('mouseup', this.onMouseUp);
+    },
+
+    // 处理鼠标拖动
+    handleMouseDrag(event) {
+      const view = uni.createSelectorQuery().in(this).select('.slider-range-inner');
+      view.boundingClientRect(data => {
+        const sliderWidth = data.width;
+        const diff = ((event.pageX - this.startDragPos) / sliderWidth) * (this.max - this.min);
+        const nextVal = this.startVal + diff;
+
+        const values = this.currentBlock === 'lowerBlock'
+          ? [nextVal, this.values[1]]
+          : [this.values[0], nextVal];
+
+        this.updateValues(values);
+      }).exec();
     }
   }
 };
@@ -383,6 +430,8 @@ export default {
   border-radius: 50%;
   box-shadow: 0rpx 0rpx 10rpx 0rpx rgba(91, 91, 91, 0.2);
   z-index: 12;
+  cursor: pointer;
+  user-select: none;
 }
 
 .range-tip {

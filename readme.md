@@ -12,7 +12,7 @@
 
 ## 安装
 
-将 `SliderRange` 组件复制到你的项目中的 `uni_modules` 目录下。
+将 `llt-slider-range` 组件复制到你的项目中的。
 
 ## 使用方法
 
