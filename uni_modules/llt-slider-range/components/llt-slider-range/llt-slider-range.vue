@@ -15,17 +15,17 @@
         v-for="block in ['lowerBlock', 'higherBlock']"
         :key="block"
         class="slider-handle-block"
-        :style="block === 'lowerBlock' ? lowerHandleStyle : higherHandleStyle"
+        :style="block === 'lowerBlock' ? leftHandleStyle : rightHandleStyle"
         :data-tag="block"
-        @touchstart="onTouchStart"
-        @touchmove="onBlockTouchMove"
+        @touchstart="handleDragStart"
+        @touchmove="handleDragMove"
         @touchend="onBlockTouchEnd"
         @mousedown="onMouseDown"
       />
 
       <!-- 滑块值提示 -->
-      <view class="range-tip" :style="lowerTipStyle">{{ formatValue(values[0]) }}</view>
-      <view class="range-tip" :style="higherTipStyle">{{ formatValue(values[1]) }}</view>
+      <view class="range-tip" :style="leftTipStyle">{{ formatValue(selectedRange[0]) }}</view>
+      <view class="range-tip" :style="rightTipStyle">{{ formatValue(selectedRange[1]) }}</view>
 
       <!-- 刻度线 -->
       <view
@@ -119,10 +119,10 @@ export default {
 
   data() {
     return {
-      values: this.modelValue, // 当前选中的值
-      startDragPos: 0, // 开始拖动时的位置
-      startVal: 0, // 开始拖动时的值
-      currentBlock: '', // 当前拖动的滑块
+      selectedRange: this.modelValue, // 当前选中的值
+      dragStartPosition: 0, // 开始拖动时的位置
+      dragStartValue: 0, // 开始拖动时的值
+      activeBlock: '', // 当前拖动的滑块
       scaleCount: DEFAULT_SCALE_COUNT, // 刻度数量
       isDragging: false // 是否正在拖动
     }
@@ -130,33 +130,33 @@ export default {
 
   computed: {
     // 计算左侧滑块位置
-    lowerHandlePosition() {
-      return this.calculateHandlePosition(this.values[0])
+    leftHandlePosition() {
+      return this.calculateHandlePosition(this.selectedRange[0])
     },
 
     // 计算右侧滑块位置
-    higherHandlePosition() {
-      return this.calculateHandlePosition(this.values[1])
+    rightHandlePosition() {
+      return this.calculateHandlePosition(this.selectedRange[1])
     },
 
     // 左侧滑块样式
-    lowerHandleStyle() {
-      return this.handleStyle('lowerBlock')
+    leftHandleStyle() {
+      return this.generateHandleStyle('lowerBlock')
     },
 
     // 右侧滑块样式
-    higherHandleStyle() {
-      return this.handleStyle('higherBlock')
+    rightHandleStyle() {
+      return this.generateHandleStyle('higherBlock')
     },
 
     // 左侧提示样式
-    lowerTipStyle() {
-      return this.tipStyle('lowerBlock')
+    leftTipStyle() {
+      return this.generateTipStyle('lowerBlock')
     },
 
     // 右侧提示样式
-    higherTipStyle() {
-      return this.tipStyle('higherBlock')
+    rightTipStyle() {
+      return this.generateTipStyle('higherBlock')
     },
 
     // 滑块容器样式
@@ -167,8 +167,8 @@ export default {
 
     // 选中区域样式
     barInnerStyle() {
-      const width = ((this.values[1] - this.values[0]) / (this.max - this.min)) * 100
-      return `width: ${width}%;left: ${this.lowerHandlePosition}%;background-color: ${this.activeColor}`
+      const width = ((this.selectedRange[1] - this.selectedRange[0]) / (this.max - this.min)) * 100
+      return `width: ${width}%;left: ${this.leftHandlePosition}%;background-color: ${this.activeColor}`
     }
   },
 
@@ -200,9 +200,9 @@ export default {
     },
 
     // 生成滑块样式
-    handleStyle(block) {
-      const position = block === 'lowerBlock' ? this.lowerHandlePosition : this.higherHandlePosition
-      let zIndex = this.currentBlock === block ? 20 : 12
+    generateHandleStyle(block) {
+      const position = block === 'lowerBlock' ? this.leftHandlePosition : this.rightHandlePosition
+      let zIndex = this.activeBlock === block ? 20 : 12
 
       if ((position < 1 && block === 'lowerBlock') || (position > 99 && block === 'higherBlock')) {
         zIndex = 11
@@ -212,10 +212,10 @@ export default {
     },
 
     // 生成提示样式
-    tipStyle(type) {
-      const position = type === 'lowerBlock' ? this.lowerHandlePosition : this.higherHandlePosition
-      const maxDistance = String(this.values[1]).length * 4
-      const distance = maxDistance - (this.higherHandlePosition - this.lowerHandlePosition)
+    generateTipStyle(type) {
+      const position = type === 'lowerBlock' ? this.leftHandlePosition : this.rightHandlePosition
+      const maxDistance = String(this.selectedRange[1]).length * 4
+      const distance = maxDistance - (this.rightHandlePosition - this.leftHandlePosition)
 
       if (distance > 0) {
         const diff = type === 'lowerBlock' ? -distance : distance
@@ -234,7 +234,7 @@ export default {
       }
 
       if (!this.isValidValues(newVal)) {
-        this.values = []
+        this.selectedRange = []
         this.$emit('update:modelValue', [], 'update')
         this.$emit('change', [])
         return
@@ -243,9 +243,9 @@ export default {
       const newValues = this.calculateNewValues(newVal)
       if (this.valuesEqual(newValues)) return
 
-      this.values = this.validateValues(newValues)
-      this.$emit('update:modelValue', [...this.values], 'update')
-      this.$emit('change', [...this.values])
+      this.selectedRange = this.validateValues(newValues)
+      this.$emit('update:modelValue', [...this.selectedRange], 'update')
+      this.$emit('change', [...this.selectedRange])
     },
 
     // 计算新的值
@@ -264,7 +264,7 @@ export default {
       higher = Math.min(higher, this.max)
 
       if (lower >= higher) {
-        if (lower === this.values[0]) {
+        if (lower === this.selectedRange[0]) {
           higher = lower + this.step
         } else {
           lower = higher - this.step
@@ -277,27 +277,27 @@ export default {
     // 判断两个值数组是否相等
     valuesEqual(newValues) {
       return Array.isArray(newValues) && 
-        Array.isArray(this.values) && 
-        newValues.length === this.values.length &&
-        newValues.every((val, index) => val === this.values[index])
+        Array.isArray(this.selectedRange) && 
+        newValues.length === this.selectedRange.length &&
+        newValues.every((val, index) => val === this.selectedRange[index])
     },
 
     // 开始拖动事件处理
-    onTouchStart(event) {
+    handleDragStart(event) {
       if (this.disabled) return
 
       const tag = event.target.dataset.tag
-      this.currentBlock = tag
+      this.activeBlock = tag
       const { pageX } = event.changedTouches?.[0] || event
-      this.startDragPos = pageX
-      this.startVal = tag === 'lowerBlock' ? this.values[0] : this.values[1]
+      this.dragStartPosition = pageX
+      this.dragStartValue = tag === 'lowerBlock' ? this.selectedRange[0] : this.selectedRange[1]
       this.isDragging = true
     },
 
     // 拖动移动事件处理
-    onBlockTouchMove(event) {
+    handleDragMove(event) {
       if (!this.isDragging || this.disabled) return
-      throttle(this.onDrag(event), 500)
+      throttle(this.processDrag(event), 500)
     },
 
     // 结束拖动事件处理
@@ -306,17 +306,17 @@ export default {
     },
 
     // 拖动处理
-    onDrag(event) {
+    processDrag(event) {
       const view = uni.createSelectorQuery().in(this).select('.slider-range-inner')
       view.boundingClientRect(data => {
         const sliderWidth = data.width
         const { pageX } = event.changedTouches?.[0] || event
-        const diff = ((pageX - this.startDragPos) / sliderWidth) * (this.max - this.min)
-        const nextVal = this.startVal + diff
+        const diff = ((pageX - this.dragStartPosition) / sliderWidth) * (this.max - this.min)
+        const nextVal = this.dragStartValue + diff
 
-        const values = this.currentBlock === 'lowerBlock'
-          ? [nextVal, this.values[1]]
-          : [this.values[0], nextVal]
+        const values = this.activeBlock === 'lowerBlock'
+          ? [nextVal, this.selectedRange[1]]
+          : [this.selectedRange[0], nextVal]
 
         this.updateValues(values)
       }).exec()
@@ -332,9 +332,9 @@ export default {
       if (this.disabled) return
       
       const tag = event.target.dataset.tag
-      this.currentBlock = tag
-      this.startDragPos = event.pageX
-      this.startVal = tag === 'lowerBlock' ? this.values[0] : this.values[1]
+      this.activeBlock = tag
+      this.dragStartPosition = event.pageX
+      this.dragStartValue = tag === 'lowerBlock' ? this.selectedRange[0] : this.selectedRange[1]
       this.isDragging = true
 
       // 添加鼠标移动和抬起的事件监听
@@ -362,12 +362,12 @@ export default {
       const view = uni.createSelectorQuery().in(this).select('.slider-range-inner')
       view.boundingClientRect(data => {
         const sliderWidth = data.width
-        const diff = ((event.pageX - this.startDragPos) / sliderWidth) * (this.max - this.min)
-        const nextVal = this.startVal + diff
+        const diff = ((event.pageX - this.dragStartPosition) / sliderWidth) * (this.max - this.min)
+        const nextVal = this.dragStartValue + diff
 
-        const values = this.currentBlock === 'lowerBlock'
-          ? [nextVal, this.values[1]]
-          : [this.values[0], nextVal]
+        const values = this.activeBlock === 'lowerBlock'
+          ? [nextVal, this.selectedRange[1]]
+          : [this.selectedRange[0], nextVal]
 
         this.updateValues(values)
       }).exec()

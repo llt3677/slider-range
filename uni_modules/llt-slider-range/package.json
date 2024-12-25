@@ -2,16 +2,16 @@
   "id": "llt-slider-range",
   "displayName": "双滑块范围选择器",
   "version": "1.0.0",
-  "description": "双滑块范围选择器组件。",
+  "description": "一个功能强大的双滑块范围选择器组件,可用于价格区间、数值范围等场景的选择。支持自定义样式、步长设置,具有良好的移动端适配性和交互体验。",
   "keywords": [
     "slider",
     "range",
-    "icon",
-    "图标"
+    "slider-range",
+    "区间滑块"
 ],
-  "repository": "xx",
+  "repository": "",
   "engines": {
-    "HBuilderX": "^3.2.14"
+    "HBuilderX": "^3.8.6"
   },
 "dcloudext": {
     "sale": {
@@ -30,8 +30,6 @@
       "data": "无",
       "permissions": "无"
     },
-    "npmurl": "xx",
-	"category": ["前端组件", "通用组件"],
     "type": "component-vue"
   },
   "uni_modules": {
@@ -40,13 +38,15 @@
     "platforms": {
       "cloud": {
         "tcb": "y",
-        "aliyun": "y"
+        "aliyun": "y",
+        "alipay": "n"
       },
       "client": {
         "App": {
-          "app-vue": "y",
-          "app-nvue": "y",
-          "app-uvue": "y"
+            "app-vue": "y",
+            "app-nvue": "n",
+            "app-uvue": "n",
+            "app-harmony": "u"
         },
         "H5-mobile": {
           "Safari": "y",
