@@ -1,7 +1,7 @@
 {
   "id": "llt-slider-range",
   "displayName": "slider range双滑块范围选择器",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "一个功能强大的双滑块范围选择器组件,可用于价格区间、数值范围等场景的选择。支持自定义样式、步长设置,具有良好的移动端适配性和交互体验。",
   "keywords": [
     "slider",
@@ -33,7 +33,7 @@
     "type": "component-vue"
   },
   "uni_modules": {
-    "dependencies": ["uni-scss"],
+    "dependencies": [],
     "encrypt": [],
     "platforms": {
       "cloud": {
