@@ -162,7 +162,7 @@ export default {
     // 滑块容器样式
     sliderStyle() {
       const padding = this.blockSize / 2
-      return `padding: 0px ${padding}rpx`
+      return `padding-left: ${padding}rpx;padding-right: ${padding}rpx`
     },
 
     // 选中区域样式
