@@ -23,7 +23,7 @@
 ### H5/App使用示例
 ```vue
 <template>
-  <llt-slide-range v-model="rangeValue" />
+  <llt-slider-range v-model="rangeValue" />
 </template>
 
 <script>
@@ -40,7 +40,7 @@ export default {
 ### 微信小程序使用示例
 ```vue
 <template>
-  <llt-slide-range 
+  <llt-slider-range 
     :model-value="rangeValue" 
     @change="handleChange"
   />
@@ -91,7 +91,7 @@ export default {
 ### 价格范围选择器
 ```vue
 <template>
-  <llt-slide-range
+  <llt-slider-range
     v-model="priceRange"
     :min="0"
     :max="10000"
@@ -120,7 +120,7 @@ export default {
 ### 温度选择器
 ```vue
 <template>
-  <llt-slide-range
+  <llt-slider-range
     v-model="tempRange"
     :min="-20"
     :max="40"
