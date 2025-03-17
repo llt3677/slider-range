@@ -115,7 +115,7 @@ export default {
     }
   },
 
-  emits: ['update:modelValue'],
+  emits: ['update:modelValue', 'change'],
 
   data() {
     return {
